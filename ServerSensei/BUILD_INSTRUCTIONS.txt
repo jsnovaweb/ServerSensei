@@ -1,0 +1,88 @@
+====================================================================
+Cross-Platform Server Monitor & Optimizer - Build Instructions
+====================================================================
+
+This application is designed to be packaged into standalone executables
+for Windows, macOS, and Linux using PyInstaller.
+
+PREREQUISITES:
+==============
+1. Python 3.8 or higher installed on your system
+2. PyInstaller: pip install pyinstaller
+3. Required dependencies: pip install psutil matplotlib
+
+BUILDING EXECUTABLES:
+=====================
+
+For Windows (.exe):
+-------------------
+1. Open Command Prompt or PowerShell
+2. Navigate to the project directory
+3. Run: pyinstaller build_windows.spec
+4. Find executable in: dist/SystemMonitor.exe
+
+For macOS (.app):
+-----------------
+1. Open Terminal
+2. Navigate to the project directory
+3. Run: pyinstaller build_macos.spec
+4. Find application bundle in: dist/SystemMonitor.app
+
+For Linux (binary):
+-------------------
+1. Open Terminal
+2. Navigate to the project directory
+3. Run: pyinstaller build_linux.spec
+4. Find executable in: dist/SystemMonitor
+
+ALTERNATIVE - Simple Build (One File):
+======================================
+If you want a simpler build without spec files:
+
+pyinstaller --onefile --windowed --name=SystemMonitor main.py
+
+This creates a single executable file in dist/ directory.
+
+CREATING AppImage (Linux):
+==========================
+For Linux AppImage distribution:
+
+1. Build the Linux executable first (as above)
+2. Install appimagetool: 
+   wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+   chmod +x appimagetool-x86_64.AppImage
+3. Create AppDir structure:
+   mkdir -p SystemMonitor.AppDir/usr/bin
+   cp dist/SystemMonitor SystemMonitor.AppDir/usr/bin/
+4. Create desktop file and icon (optional)
+5. Run: ./appimagetool-x86_64.AppImage SystemMonitor.AppDir
+
+TESTING:
+========
+Before building, test the application by running:
+python main.py
+
+The application should launch with a GUI showing system monitoring
+dashboard, process manager, optimization tools, device manager, and
+system information tabs.
+
+TROUBLESHOOTING:
+===============
+- If modules are missing, run: pip install -r requirements.txt
+  (Create requirements.txt with: pip freeze > requirements.txt)
+- On Linux, if GUI doesn't show, install: sudo apt-get install python3-tk
+- On macOS, ensure Xcode Command Line Tools are installed
+- For permission errors on optimization features, run with administrator/sudo
+
+DISTRIBUTION:
+=============
+- Windows: Distribute the .exe file (may need to allow through antivirus)
+- macOS: Distribute the .app bundle (may need code signing for Gatekeeper)
+- Linux: Distribute the binary or AppImage file (chmod +x before running)
+
+NOTES:
+======
+- The first run may take a few seconds as dependencies are verified
+- Administrator/root privileges required for some optimization features
+- Antivirus software may flag the executable - this is common for PyInstaller apps
+- File size will be 50-100MB due to bundled Python interpreter and libraries
