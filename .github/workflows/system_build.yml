@@ -1,4 +1,4 @@
-name: Build
+name: Build and Package SystemMonitor
 
 on:
   push:
@@ -24,27 +24,54 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyinstaller pillow
-          pip install psutil matplotlib numpy paramiko gputil fpdf2
+          python -m pip install --upgrade pip
+          python -m pip install psutil matplotlib numpy paramiko GPUtil fpdf
 
-      # Linux build
-      - name: Build on Linux
-        if: runner.os == 'Linux'
-        run: pyinstaller build_linux.spec
+      - name: Build with PyInstaller
+        run: |
+          if [ "${{ runner.os }}" != "Windows" ]; then
+            pyinstaller --noconfirm --clean --onefile --windowed main.py
+          else
+            pyinstaller --noconfirm --clean --onefile --windowed main.py
+        shell: bash
 
-      # macOS build (auto .icns from .png)
-      - name: Build on macOS
+      # macOS DMG
+      - name: Package macOS .dmg
         if: runner.os == 'macOS'
-        run: pyinstaller build_macos.spec
+        run: |
+          hdiutil create -volname "SystemMonitor" \
+            -srcfolder "dist/SystemMonitor(macOS)" \
+            -ov -format UDZO "dist/SystemMonitor-macOS.dmg"
 
-      # Windows build (auto .ico from .png)
-      - name: Build on Windows
+      # Windows ZIP
+      - name: Package Windows .zip
         if: runner.os == 'Windows'
-        run: pyinstaller build_windows.spec
+        run: |
+          Compress-Archive -Path dist\main.exe -DestinationPath dist\SystemMonitor-Windows.zip
         shell: pwsh
 
-      - name: Upload build artifacts
+      # Linux .deb
+      - name: Package Linux .deb
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p package/DEBIAN
+          echo "Package: systemmonitor" > package/DEBIAN/control
+          echo "Version: 1.0.0" >> package/DEBIAN/control
+          echo "Section: utils" >> package/DEBIAN/control
+          echo "Priority: optional" >> package/DEBIAN/control
+          echo "Architecture: amd64" >> package/DEBIAN/control
+          echo "Maintainer: Your Name <you@example.com>" >> package/DEBIAN/control
+          echo "Description: System Monitor App" >> package/DEBIAN/control
+          mkdir -p package/usr/local/bin
+          cp dist/main package/usr/local/bin/SystemMonitor
+          dpkg-deb --build package dist/SystemMonitor-1.0.0.deb
+
+      # Upload artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ runner.os }}
-          path: dist/
+          name: SystemMonitor-${{ runner.os }}
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.deb
