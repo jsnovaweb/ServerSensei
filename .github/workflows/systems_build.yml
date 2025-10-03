@@ -31,27 +31,25 @@ jobs:
       - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
-          pyinstaller build_linux.spec --hidden-import=PIL
-          # create .deb package
+          pyinstaller build_linux.spec
           sudo apt-get update
           sudo apt-get install -y ruby ruby-dev build-essential
           gem install --no-document fpm
-          fpm -s dir -t deb -n myapp -v 1.0 dist/
+          fpm -s dir -t deb -n systemmonitor -v 1.0 dist/
 
       # macOS build
       - name: Build on macOS
         if: runner.os == 'macOS'
         run: |
-          pyinstaller build_macos.spec --hidden-import=PIL
-          # create .dmg package
-          hdiutil create -volname MyApp -srcfolder dist/ -ov -format UDZO MyApp.dmg
+          pyinstaller build_macos.spec
+          hdiutil create -volname SystemMonitor -srcfolder "dist/SystemMonitor(macOS).app" -ov -format UDZO SystemMonitor.dmg
 
       # Windows build
       - name: Build on Windows
         if: runner.os == 'Windows'
         run: |
-          pyinstaller build_windows.spec --hidden-import=PIL
-          powershell Compress-Archive -Path dist/* -DestinationPath MyApp.zip
+          pyinstaller build_windows.spec
+          powershell Compress-Archive -Path dist/* -DestinationPath SystemMonitor.zip
         shell: pwsh
 
       # Upload artifacts
@@ -60,6 +58,6 @@ jobs:
         with:
           name: build-${{ runner.os }}
           path: |
-            ${{ runner.os == 'Linux' && 'myapp_1.0_amd64.deb' || '' }}
-            ${{ runner.os == 'macOS' && 'MyApp.dmg' || '' }}
-            ${{ runner.os == 'Windows' && 'MyApp.zip' || '' }}
+            ${{ runner.os == 'Linux' && 'systemmonitor_1.0_amd64.deb' || '' }}
+            ${{ runner.os == 'macOS' && 'SystemMonitor.dmg' || '' }}
+            ${{ runner.os == 'Windows' && 'SystemMonitor.zip' || '' }}
