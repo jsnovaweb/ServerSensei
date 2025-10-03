@@ -1,14 +1,24 @@
-# PyInstaller spec file for Windows executable
-# Usage: pyinstaller build_windows.spec
+# PyInstaller spec file for macOS executable
+# Usage: pyinstaller build_macos.spec
 
 block_cipher = None
 
 a = Analysis(
     ['main.py'],
-    pathex=[],
+    pathex=['.'],
     binaries=[],
-    datas=[],
-    hiddenimports=['psutil', 'matplotlib', 'numpy', 'PIL', 'paramiko', 'cryptography'],
+    datas=[
+        ('Monitor.png', '.'),   # app icon
+    ],
+    hiddenimports=[
+        'psutil',
+        'matplotlib',
+        'numpy',
+        'PIL',
+        'paramiko',
+        'cryptography',
+        'fpdf',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -28,18 +38,16 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SystemMonitor',
+    name='SystemMonitor(macOS)',
     debug=False,
     bootloader_ignore_signals=False,
-    strip=False,
-    upx=False,
+    strip=True,
+    upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
+    argv_emulation=True,   # macOS-specific for GUI apps
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=None,
 )
