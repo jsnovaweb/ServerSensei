@@ -9,7 +9,7 @@ a = Analysis(
     ['main.py'],
     pathex=['.'],
     binaries=[],
-    datas=[(os.path.join(base, 'Monitor.png'), '.')],
+    datas=[('Monitor.png', '.')],
     hiddenimports=[
         'psutil', 'matplotlib', 'numpy', 'PIL',
         'paramiko', 'cryptography', 'fpdf', 'GPUtil',
