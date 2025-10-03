@@ -1,20 +1,17 @@
-# build_macos.spec
-
-# -*- mode: python ; coding: utf-8 -*-
+# PyInstaller spec file for macOS .app
+# Usage: pyinstaller build_macos.spec
 from pathlib import Path
-from PyInstaller.utils.hooks import collect_submodules
-
-# Define the project root (directory containing this .spec file)
-project_root = Path(__file__).parent
-
 block_cipher = None
 
+project_root = Path(__file__).parent
+icon_path = project_root / "icon" / "Monitor.png"
+
 a = Analysis(
-    ['main.py'],  # entry point
+    ['main.py'],
     pathex=[str(project_root)],
     binaries=[],
-    datas=[(str(project_root / 'Monitor.png'), '.')],  # relative path fix
-    hiddenimports=collect_submodules(''),
+    datas=[(str(icon_path), '.')],
+    hiddenimports=['psutil', 'matplotlib', 'numpy', 'PIL', 'paramiko', 'cryptography', 'fpdf'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -32,22 +29,13 @@ exe = EXE(
     a.datas,
     [],
     name='SystemMonitor(macOS)',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    console=False,  # GUI app on macOS
-    disable_windowed_traceback=False,
-    argv_emulation=True,  # macOS fix for argv
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon=None,  # you can replace with .icns if you want
+    console=False,
+    argv_emulation=True,
 )
 
 app = BUNDLE(
     exe,
     name='SystemMonitor(macOS).app',
-    icon=None,
+    icon=str(icon_path),   # macOS bundle icon
     bundle_identifier=None,
 )

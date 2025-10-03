@@ -1,24 +1,22 @@
 # PyInstaller spec file for Linux executable
 # Usage: pyinstaller build_linux.spec
-
-import os
-base = os.path.abspath(os.path.dirname(__file__))
+from pathlib import Path
 block_cipher = None
+
+project_root = Path(__file__).parent
+icon_path = project_root / "icon" / "Monitor.png"
 
 a = Analysis(
     ['main.py'],
-    pathex=['.'],
+    pathex=[str(project_root)],
     binaries=[],
-    datas=[(os.path.join(base, 'Monitor.png'), '.')],
-    hiddenimports=[
-        'psutil', 'matplotlib', 'numpy', 'PIL',
-        'paramiko', 'cryptography', 'fpdf', 'GPUtil',
-    ],
+    datas=[(str(icon_path), '.')],
+    hiddenimports=['psutil', 'matplotlib', 'numpy', 'PIL', 'paramiko', 'cryptography', 'fpdf'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    cipher=block_cipher,
+    noarchive=False,
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
@@ -33,7 +31,6 @@ exe = EXE(
     name='SystemMonitor(Linux)',
     debug=False,
     strip=True,
-    upx=False,
+    upx=True,
     console=False,
-    icon=os.path.join(base, 'Monitor.png'),
 )
