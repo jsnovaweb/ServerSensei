@@ -1,12 +1,15 @@
 # PyInstaller spec file for Windows executable
 # Usage: pyinstaller build_windows.spec
+
 block_cipher = None
 
 a = Analysis(
     ['main.py'],
     pathex=['.'],
     binaries=[],
-    datas=[('icon/Monitor.png', '.')],
+    datas=[
+        ('icon/Monitor.png', '.'),   # <-- FIXED PATH
+    ],
     hiddenimports=[
         'psutil',
         'matplotlib',
@@ -20,6 +23,9 @@ a = Analysis(
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
+    win_no_prefer_redirects=False,
+    win_private_assemblies=False,
+    cipher=block_cipher,
     noarchive=False,
 )
 
@@ -37,5 +43,9 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,
-    icon='icon/Monitor.png',
+    disable_windowed_traceback=False,
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon='icon/Monitor.png',   # <-- FIXED PATH
 )
