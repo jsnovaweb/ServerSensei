@@ -1,24 +1,25 @@
-# PyInstaller spec file for macOS app bundle
-# Usage: pyinstaller build_macos.spec
+# build_macos.spec
 
-import os
-base = os.path.abspath(os.path.dirname(__file__))
+# -*- mode: python ; coding: utf-8 -*-
+from pathlib import Path
+from PyInstaller.utils.hooks import collect_submodules
+
+# Define the project root (directory containing this .spec file)
+project_root = Path(__file__).parent
+
 block_cipher = None
 
 a = Analysis(
-    ['main.py'],
-    pathex=['.'],
+    ['main.py'],  # entry point
+    pathex=[str(project_root)],
     binaries=[],
-    datas=[('Monitor.png', '.')],
-    hiddenimports=[
-        'psutil', 'matplotlib', 'numpy', 'PIL',
-        'paramiko', 'cryptography', 'fpdf', 'GPUtil',
-    ],
+    datas=[(str(project_root / 'Monitor.png'), '.')],  # relative path fix
+    hiddenimports=collect_submodules(''),
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    cipher=block_cipher,
+    noarchive=False,
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
@@ -32,16 +33,21 @@ exe = EXE(
     [],
     name='SystemMonitor(macOS)',
     debug=False,
-    strip=True,
-    upx=False,
-    console=False,
-    argv_emulation=True,
-    icon=os.path.join(base, 'Monitor.png'),
+    bootloader_ignore_signals=False,
+    strip=False,
+    upx=True,
+    console=False,  # GUI app on macOS
+    disable_windowed_traceback=False,
+    argv_emulation=True,  # macOS fix for argv
+    target_arch=None,
+    codesign_identity=None,
+    entitlements_file=None,
+    icon=None,  # you can replace with .icns if you want
 )
 
 app = BUNDLE(
     exe,
     name='SystemMonitor(macOS).app',
-    icon=os.path.join(base, 'Monitor.png'),
-    bundle_identifier='com.system.monitor',
+    icon=None,
+    bundle_identifier=None,
 )
