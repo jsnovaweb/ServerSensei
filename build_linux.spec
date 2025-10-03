@@ -1,17 +1,21 @@
 # PyInstaller spec file for Linux executable
 # Usage: pyinstaller build_linux.spec
-from pathlib import Path
 block_cipher = None
-
-project_root = Path(__file__).parent
-icon_path = project_root / "icon" / "Monitor.png"
 
 a = Analysis(
     ['main.py'],
-    pathex=[str(project_root)],
+    pathex=['.'],
     binaries=[],
-    datas=[(str(icon_path), '.')],
-    hiddenimports=['psutil', 'matplotlib', 'numpy', 'PIL', 'paramiko', 'cryptography', 'fpdf'],
+    datas=[('icon/Monitor.png', '.')],
+    hiddenimports=[
+        'psutil',
+        'matplotlib',
+        'numpy',
+        'PIL',
+        'paramiko',
+        'cryptography',
+        'fpdf',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

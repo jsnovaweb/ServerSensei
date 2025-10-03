@@ -1,17 +1,21 @@
 # PyInstaller spec file for Windows executable
 # Usage: pyinstaller build_windows.spec
-from pathlib import Path
 block_cipher = None
-
-project_root = Path(__file__).parent
-icon_path = project_root / "icon" / "Monitor.png"
 
 a = Analysis(
     ['main.py'],
-    pathex=[str(project_root)],
+    pathex=['.'],
     binaries=[],
-    datas=[(str(icon_path), '.')],
-    hiddenimports=['psutil', 'matplotlib', 'numpy', 'PIL', 'paramiko', 'cryptography', 'fpdf'],
+    datas=[('icon/Monitor.png', '.')],
+    hiddenimports=[
+        'psutil',
+        'matplotlib',
+        'numpy',
+        'PIL',
+        'paramiko',
+        'cryptography',
+        'fpdf',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -33,5 +37,5 @@ exe = EXE(
     strip=False,
     upx=False,
     console=False,
-    icon=str(icon_path),   # Windows can use it as the .exe icon
+    icon='icon/Monitor.png',
 )
