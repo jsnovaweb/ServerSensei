@@ -1,0 +1,49 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PyInstaller
+        run: pip install pyinstaller
+
+      # Linux build
+      - name: Build Linux Executable
+        if: runner.os == 'Linux'
+        run: pyinstaller build_linux.spec
+
+      # macOS build
+      - name: Build macOS App
+        if: runner.os == 'macOS'
+        run: pyinstaller build_macos.spec
+
+      # Windows build
+      - name: Build Windows Executable
+        if: runner.os == 'Windows'
+        run: pyinstaller build_windows.spec
+        shell: pwsh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ runner.os }}
+          path: dist/
+
