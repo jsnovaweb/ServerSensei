@@ -35,7 +35,7 @@ jobs:
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             pyinstaller specs/build_macos.spec --clean
           elif [[ "${{ runner.os }}" == "Windows" ]]; then
-            pyinstaller specs/build_windows.spec --clean
+            pwsh -Command "pyinstaller specs/build_windows.spec --clean"
 
       - name: Package Linux build
         if: runner.os == 'Linux'
