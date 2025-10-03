@@ -1,4 +1,4 @@
-name: Build and Package SystemMonitor
+name: Build & Package
 
 on:
   push:
@@ -23,55 +23,44 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install psutil matplotlib numpy paramiko GPUtil fpdf
-
-      - name: Build with PyInstaller
-        run: |
-          if [ "${{ runner.os }}" != "Windows" ]; then
-            pyinstaller --noconfirm --clean --onefile --windowed main.py
-          else
-            pyinstaller --noconfirm --clean --onefile --windowed main.py
+        run: python dependency_installer.py
         shell: bash
 
-      # macOS DMG
-      - name: Package macOS .dmg
-        if: runner.os == 'macOS'
-        run: |
-          hdiutil create -volname "SystemMonitor" \
-            -srcfolder "dist/SystemMonitor(macOS)" \
-            -ov -format UDZO "dist/SystemMonitor-macOS.dmg"
-
-      # Windows ZIP
-      - name: Package Windows .zip
-        if: runner.os == 'Windows'
-        run: |
-          Compress-Archive -Path dist\main.exe -DestinationPath dist\SystemMonitor-Windows.zip
-        shell: pwsh
-
-      # Linux .deb
-      - name: Package Linux .deb
+      - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
-          mkdir -p package/DEBIAN
-          echo "Package: systemmonitor" > package/DEBIAN/control
-          echo "Version: 1.0.0" >> package/DEBIAN/control
-          echo "Section: utils" >> package/DEBIAN/control
-          echo "Priority: optional" >> package/DEBIAN/control
-          echo "Architecture: amd64" >> package/DEBIAN/control
-          echo "Maintainer: Your Name <you@example.com>" >> package/DEBIAN/control
-          echo "Description: System Monitor App" >> package/DEBIAN/control
-          mkdir -p package/usr/local/bin
-          cp dist/main package/usr/local/bin/SystemMonitor
-          dpkg-deb --build package dist/SystemMonitor-1.0.0.deb
+          # Build binary
+          pyinstaller --noconfirm --clean --onefile --name SystemMonitor main.py
+          # Create .deb package
+          mkdir -p dist/deb
+          sudo apt-get update && sudo apt-get install -y ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
+          fpm -s dir -t deb -n systemmonitor -v 1.0 dist/SystemMonitor=/usr/bin/SystemMonitor
+          # Zip the binary and .deb
+          zip -r dist/systemmonitor-linux.zip dist/SystemMonitor dist/systemmonitor_1.0_amd64.deb
+        shell: bash
 
-      # Upload artifacts
-      - name: Upload artifacts
+      - name: Build on macOS
+        if: runner.os == 'macOS'
+        run: |
+          # Build .app bundle
+          pyinstaller --noconfirm --clean --windowed --name SystemMonitor main.py
+          # Create .dmg installer
+          hdiutil create -volname "SystemMonitor" -srcfolder dist/SystemMonitor.app -ov -format UDZO dist/SystemMonitor.dmg
+          # Zip the .app and .dmg
+          zip -r dist/systemmonitor-macos.zip dist/SystemMonitor.app dist/SystemMonitor.dmg
+        shell: bash
+
+      - name: Build on Windows
+        if: runner.os == 'Windows'
+        run: |
+          pyinstaller --noconfirm --clean --onefile --windowed --name SystemMonitor.exe main.py
+          # Zip the .exe
+          powershell Compress-Archive -Path dist\SystemMonitor.exe -DestinationPath dist\systemmonitor-windows.zip
+        shell: pwsh
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SystemMonitor-${{ runner.os }}
-          path: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.deb
+          name: build-${{ runner.os }}
+          path: dist/*
