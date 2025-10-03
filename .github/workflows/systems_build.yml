@@ -28,11 +28,10 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python dependency_installer.py
           pip install psutil matplotlib numpy paramiko GPUtil fpdf Pillow
 
       # Step 4: Build using spec files
-      - name: Build
+      - name: Build SystemMonitor
         run: |
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             pyinstaller specs/build_linux.spec --clean
@@ -40,44 +39,43 @@ jobs:
             pyinstaller specs/build_macos.spec --clean
           elif [[ "${{ runner.os }}" == "Windows" ]]; then
             pyinstaller specs/build_windows.spec --clean
-          fi
         shell: bash
+        # Note: Windows runner will use bash if git-bash is installed; otherwise, adjust to pwsh
 
       # Step 5: Package build artifacts
-      - name: Package build artifacts
+      - name: Package Linux build
+        if: runner.os == 'Linux'
         run: |
-          if [[ "${{ runner.os }}" == "Linux" ]]; then
-            mkdir -p dist/SystemMonitor-deb/DEBIAN
-            mkdir -p dist/SystemMonitor-deb/usr/local/bin/SystemMonitor
-            cp -r dist/SystemMonitor/Linux/* dist/SystemMonitor-deb/usr/local/bin/SystemMonitor/
-            echo "Package: systemmonitor
+          mkdir -p dist/SystemMonitor-deb/DEBIAN
+          mkdir -p dist/SystemMonitor-deb/usr/local/bin/SystemMonitor
+          cp -r dist/SystemMonitor/Linux/* dist/SystemMonitor-deb/usr/local/bin/SystemMonitor/
+          echo "Package: systemmonitor
 Version: 1.0
 Section: utils
 Priority: optional
 Architecture: amd64
 Maintainer: Your Name <you@example.com>
 Description: SystemMonitor - System Monitoring Tool" > dist/SystemMonitor-deb/DEBIAN/control
-            dpkg-deb --build dist/SystemMonitor-deb dist/SystemMonitor.deb
-            zip -j dist/SystemMonitor-linux.zip dist/SystemMonitor.deb
-
-          elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            mkdir -p dist/macos
-            cp -r dist/SystemMonitor/macOS/* dist/macos/
-            hdiutil create -volname SystemMonitor -srcfolder dist/macos -ov -format UDZO dist/SystemMonitor-macos.dmg
-            zip -r dist/SystemMonitor-macos.zip dist/SystemMonitor-macos.dmg
-
-          elif [[ "${{ runner.os }}" == "Windows" ]]; then
-            mkdir -p dist/windows
-            xcopy /E /I dist\SystemMonitor\Windows dist\windows\
-            powershell Compress-Archive -Path dist\windows\* -DestinationPath dist\SystemMonitor-windows.zip
+          dpkg-deb --build dist/SystemMonitor-deb dist/SystemMonitor.deb
+          zip -j dist/SystemMonitor-linux.zip dist/SystemMonitor.deb
         shell: bash
 
-      # Step 6: Upload artifacts
+      - name: Package macOS build
+        if: runner.os == 'macOS'
+        run: |
+          hdiutil create -volname SystemMonitor -srcfolder dist/SystemMonitor/macOS -ov -format UDZO dist/SystemMonitor-macos.dmg
+          zip -r dist/SystemMonitor-macos.zip dist/SystemMonitor-macos.dmg
+        shell: bash
+
+      - name: Package Windows build
+        if: runner.os == 'Windows'
+        run: |
+          powershell Compress-Archive -Path dist\SystemMonitor\Windows\* -DestinationPath dist\SystemMonitor-windows.zip
+        shell: pwsh
+
+      # Step 6: Upload all packaged artifacts
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SystemMonitor-${{ runner.os }}
-          path: |
-            dist/SystemMonitor-linux.zip
-            dist/SystemMonitor-macos.zip
-            dist/SystemMonitor-windows.zip
+          path: dist/*.zip
