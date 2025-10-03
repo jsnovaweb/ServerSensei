@@ -1,4 +1,4 @@
-name: Build and Package
+name: Build SystemMonitor
 
 on:
   push:
@@ -25,63 +25,43 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller pillow psutil matplotlib numpy paramiko GPUtil fpdf
-        shell: bash
+          pip install pyinstaller psutil matplotlib numpy paramiko GPUtil pillow fpdf
 
-      - name: Verify PyInstaller
-        run: pyinstaller --version
-        shell: bash
-
-      - name: Build application
-        run: |
-          if [ "${{ runner.os }}" == "macOS" ]; then
-            pyinstaller build_macos.spec
-          elif [ "${{ runner.os }}" == "Linux" ]; then
-            pyinstaller build_linux.spec
-          fi
-        shell: bash
-        if: runner.os != 'Windows'
-
-      - name: Build application on Windows
-        run: pyinstaller build_windows.spec
-        shell: pwsh
-        if: runner.os == 'Windows'
-
-      # -------------------------------
-      # Packaging steps
-      # -------------------------------
-      - name: Package Linux as .deb
+      # Linux build (.deb)
+      - name: Build Linux .deb
         if: runner.os == 'Linux'
         run: |
-          mkdir -p package/DEBIAN
-          mkdir -p package/usr/local/bin
-          cp dist/SystemMonitor/Linux/* package/usr/local/bin/
-          echo "Package: systemmonitor" > package/DEBIAN/control
-          echo "Version: 1.0.0" >> package/DEBIAN/control
-          echo "Architecture: amd64" >> package/DEBIAN/control
-          echo "Maintainer: YourName <you@example.com>" >> package/DEBIAN/control
-          echo "Description: System Monitor & Optimizer" >> package/DEBIAN/control
-          dpkg-deb --build package SystemMonitor.deb
+          pyinstaller build_linux.spec --noconfirm --clean --windowed --onedir
+          # Package into .deb using fpm (install fpm first)
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev build-essential
+          sudo gem install --no-document fpm
+          fpm -s dir -t deb -n systemmonitor -v 1.0 dist/SystemMonitor/=/opt/systemmonitor
         shell: bash
 
-      - name: Package macOS as .dmg
+      # macOS build (.dmg)
+      - name: Build macOS .app and .dmg
         if: runner.os == 'macOS'
         run: |
-          hdiutil create -volname SystemMonitor -srcfolder dist/SystemMonitor/macOS -ov -format UDZO SystemMonitor.dmg
+          pyinstaller build_macos.spec --noconfirm --clean --windowed
+          hdiutil create -volname SystemMonitor -srcfolder dist/SystemMonitor(macOS).app -ov -format UDZO SystemMonitor-macOS.dmg
         shell: bash
 
-      - name: Package Windows as .zip
+      # Windows build (.exe + zip)
+      - name: Build Windows .exe and zip
         if: runner.os == 'Windows'
         run: |
-          Compress-Archive -Path dist\SystemMonitor\Windows\* -DestinationPath SystemMonitor.zip
+          pyinstaller build_windows.spec --noconfirm --clean --windowed --onedir
+          Compress-Archive -Path dist\SystemMonitor\* -DestinationPath SystemMonitor-Windows.zip
         shell: pwsh
 
-      - name: Upload packaged artifacts
+      # Upload artifacts
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SystemMonitor-${{ runner.os }}
+          name: systemmonitor-${{ runner.os }}
           path: |
-            SystemMonitor.deb
-            SystemMonitor.dmg
-            SystemMonitor.zip
-
+            dist/*.deb
+            dist/*.dmg
+            dist/*.zip
+            dist/SystemMonitor*
