@@ -8,7 +8,7 @@ a = Analysis(
     pathex=['.'],
     binaries=[],
     datas=[
-        ('icon/Monitor.png', '.'),   # <-- FIXED PATH
+        ('icon/Monitor.png', '.'),
     ],
     hiddenimports=[
         'psutil',
@@ -44,5 +44,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icon/Monitor.png',   # <-- FIXED PATH
+    icon='icon/Monitor.png',
 )
