@@ -48,7 +48,7 @@ jobs:
           sudo gem install --no-document fpm
           # Package single executable into .deb
           fpm -s dir -t deb -n systemmonitor -v 1.0 \
-            "dist/SystemMonitor(Linux)"=/usr/local/bin/systemmonitor \
+            "dist/SystemMonitor(linux)"=/usr/local/bin/systemmonitor \
             "icon/Monitor.png"=/usr/share/pixmaps/systemmonitor.png
       #######################
       # 5. macOS build (.app + .dmg)
