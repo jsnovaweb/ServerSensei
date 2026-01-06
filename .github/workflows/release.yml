@@ -17,9 +17,11 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
+      # ---------- CHECKOUT ----------
       - name: Checkout source
         uses: actions/checkout@v4
 
+      # ---------- PYTHON ----------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -30,25 +32,26 @@ jobs:
           pip install pyinstaller pillow
           pip install psutil matplotlib numpy paramiko gputil fpdf2
 
-      # ---------------- LINUX ----------------
+      # ================== LINUX ==================
       - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           pyinstaller build_linux.spec
           sudo apt-get update
           sudo apt-get install -y ruby ruby-dev build-essential
           sudo gem install --no-document fpm
-          fpm -s dir -t deb -n systemmonitor -v ${GITHUB_REF_NAME#v} dist
+          fpm -s dir -t deb -n systemmonitor -v "$VERSION" dist
 
       - name: Upload Linux Release Asset
         if: runner.os == 'Linux'
         uses: softprops/action-gh-release@v2
         with:
-          files: systemmonitor_${{ github.ref_name#v }}_amd64.deb
+          files: systemmonitor_*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ---------------- macOS ----------------
+      # ================== macOS ==================
       - name: Build on macOS
         if: runner.os == 'macOS'
         run: |
@@ -65,7 +68,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ---------------- WINDOWS ----------------
+      # ================== WINDOWS ==================
       - name: Build on Windows
         if: runner.os == 'Windows'
         run: |
