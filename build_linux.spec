@@ -1,4 +1,4 @@
-# PyInstaller spec file for Linux single executable
+# PyInstaller spec file for Linux (onedir)
 # Usage: pyinstaller build_linux.spec
 
 block_cipher = None
@@ -8,7 +8,7 @@ a = Analysis(
     pathex=['.'],
     binaries=[],
     datas=[
-        ('icon/Monitor.png', '.'),  # Include icon
+        ('icon/Monitor.png', '.'),
     ],
     hiddenimports=[
         'psutil',
@@ -41,9 +41,6 @@ exe = EXE(
     upx=False,
     console=False,
     disable_windowed_traceback=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
     icon='icon/Monitor.png',
-    onefile=True
+    onefile=False
 )
