@@ -2,84 +2,81 @@ name: Build & Release
 
 on:
   push:
-    tags:
-      - 'v*'
-
-permissions:
-  contents: write
+    branches:
+      - main
+  pull_request:
 
 jobs:
   build:
     runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
-      # ---------- CHECKOUT ----------
+      # 1. Checkout source
       - name: Checkout source
         uses: actions/checkout@v4
 
-      # ---------- PYTHON ----------
+      # 2. Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: |
-          pip install pyinstaller pillow
-          pip install psutil matplotlib numpy paramiko gputil fpdf2
+          pip install pyinstaller pillow psutil matplotlib numpy paramiko gputil fpdf2
 
-      # ================== LINUX ==================
+      #######################
+      # Linux build
+      #######################
       - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
           pyinstaller build_linux.spec
+
+          # Install fpm for .deb
           sudo apt-get update
           sudo apt-get install -y ruby ruby-dev build-essential
           sudo gem install --no-document fpm
-          fpm -s dir -t deb -n systemmonitor -v "$VERSION" dist
 
-      - name: Upload Linux Release Asset
-        if: runner.os == 'Linux'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: systemmonitor_*.deb
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Build .deb and map executable to PATH
+          fpm -s dir -t deb -n systemmonitor -v 1.0 \
+            "dist/SystemMonitor(Linux)/SystemMonitor(Linux)"=/usr/local/bin/systemmonitor \
+            "dist/SystemMonitor(Linux)/Monitor.png"=/usr/share/pixmaps/systemmonitor.png
 
-      # ================== macOS ==================
+      #######################
+      # macOS build
+      #######################
       - name: Build on macOS
         if: runner.os == 'macOS'
         run: |
           pyinstaller build_macos.spec
-          hdiutil create -volname SystemMonitor \
-            -srcfolder "dist/SystemMonitor(macOS).app" \
-            -ov -format UDZO SystemMonitor.dmg
 
-      - name: Upload macOS Release Asset
-        if: runner.os == 'macOS'
-        uses: softprops/action-gh-release@v2
-        with:
-          files: SystemMonitor.dmg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Create dmg from .app bundle
+          hdiutil create -volname SystemMonitor -srcfolder "dist/SystemMonitor(macOS).app" -ov -format UDZO SystemMonitor.dmg
 
-      # ================== WINDOWS ==================
+      #######################
+      # Windows build
+      #######################
       - name: Build on Windows
         if: runner.os == 'Windows'
         run: |
           pyinstaller build_windows.spec
-          Compress-Archive -Path dist/* -DestinationPath SystemMonitor.zip
+
+          powershell Compress-Archive -Path dist/* -DestinationPath SystemMonitor.zip
         shell: pwsh
 
-      - name: Upload Windows Release Asset
-        if: runner.os == 'Windows'
-        uses: softprops/action-gh-release@v2
+      #######################
+      # Upload artifacts
+      #######################
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: SystemMonitor.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: build-${{ runner.os }}
+          path: |
+            ${{ runner.os == 'Linux' && 'SystemMonitor_1.0_amd64.deb' || '' }}
+            ${{ runner.os == 'macOS' && 'SystemMonitor.dmg' || '' }}
+            ${{ runner.os == 'Windows' && 'SystemMonitor.zip' || '' }}
