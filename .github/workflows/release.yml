@@ -27,7 +27,7 @@ jobs:
           pip install psutil matplotlib numpy paramiko gputil fpdf2
 
       # Linux build
-      - name: Build Linux
+      - name: Build Linux (onedir)
         if: runner.os == 'Linux'
         run: |
           pyinstaller build_linux.spec
@@ -44,12 +44,16 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           pyinstaller build_macos.spec
+          # Create DMG
+          hdiutil create -volname SystemMonitor -srcfolder "dist/SystemMonitor(macOS).app" -ov -format UDZO SystemMonitor.dmg
 
       # Windows build
       - name: Build Windows
         if: runner.os == 'Windows'
         run: |
           pyinstaller build_windows.spec
+          powershell Compress-Archive -Path dist/* -DestinationPath SystemMonitor.zip
+        shell: pwsh
 
       # Upload artifacts
       - name: Upload build artifacts
@@ -58,5 +62,6 @@ jobs:
           name: build-${{ runner.os }}
           path: |
             ${{ runner.os == 'Linux' && 'systemmonitor_1.0_amd64.deb' || '' }}
-            ${{ runner.os == 'macOS' && 'dist/SystemMonitormacOS.app' || '' }}
-            ${{ runner.os == 'Windows' && 'dist/SystemMonitorWindows/SystemMonitorWindows.exe' || '' }}
+            ${{ runner.os == 'macOS' && 'SystemMonitorMacOS.dmg' || '' }}
+            ${{ runner.os == 'Windows' && 'SystemMonitorWindows.zip' || '' }}
+          if-no-files-found: warn
