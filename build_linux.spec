@@ -1,5 +1,5 @@
+# build_linux.spec
 # PyInstaller spec file for Linux (onedir)
-# Usage: pyinstaller build_linux.spec
 
 block_cipher = None
 
@@ -35,7 +35,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SystemMonitor(Linux)',
+    name='SystemMonitorLinux',    # <-- renamed, no parentheses
     debug=False,
     strip=True,
     upx=False,
