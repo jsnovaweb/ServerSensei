@@ -1,5 +1,5 @@
 # build_linux.spec
-# PyInstaller spec file for Linux (onedir)
+# PyInstaller spec file for Linux (onefile)
 
 block_cipher = None
 
@@ -7,9 +7,7 @@ a = Analysis(
     ['main.py'],
     pathex=['.'],
     binaries=[],
-    datas=[
-        ('icon/Monitor.png', '.'),
-    ],
+    datas=[('icon/Monitor.png', '.')],
     hiddenimports=[
         'psutil',
         'matplotlib',
@@ -35,12 +33,12 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SystemMonitorLinux',    # <-- renamed, no parentheses
+    name='SystemMonitor(linux)',   
     debug=False,
     strip=True,
     upx=False,
     console=False,
     disable_windowed_traceback=False,
     icon='icon/Monitor.png',
-    onefile=False
+    onefile=True
 )
