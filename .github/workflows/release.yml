@@ -11,61 +11,48 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-20.04, macos-latest, windows-latest]  # Ubuntu 20.04 ensures GLIBC compatibility
 
     steps:
-      #######################
-      # 1. Checkout code
-      #######################
+      # 1. Checkout source
       - name: Checkout source
         uses: actions/checkout@v4
 
-      #######################
       # 2. Set up Python
-      #######################
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      #######################
       # 3. Install dependencies
-      #######################
       - name: Install dependencies
         run: |
           pip install pyinstaller pillow psutil matplotlib numpy paramiko gputil fpdf2
 
-      #######################
-      # 4. Linux build (single-file .deb)
-      #######################
+      # 4. Linux build (onedir)
       - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
-          # Build single-file Linux executable
           pyinstaller build_linux.spec
 
-          # Install FPM for .deb creation
+          # Install FPM to package .deb
           sudo apt-get update
           sudo apt-get install -y ruby ruby-dev build-essential
           sudo gem install --no-document fpm
 
-          # Package single executable into .deb
+          # Package the folder into a .deb
           fpm -s dir -t deb -n systemmonitor -v 1.0 \
-            "dist/SystemMonitor(Linux)"=/usr/local/bin/systemmonitor \
+            "dist/SystemMonitor(Linux)"=/opt/systemmonitor \
             "icon/Monitor.png"=/usr/share/pixmaps/systemmonitor.png
 
-      #######################
       # 5. macOS build (.app + .dmg)
-      #######################
       - name: Build on macOS
         if: runner.os == 'macOS'
         run: |
           pyinstaller build_macos.spec
           hdiutil create -volname SystemMonitor -srcfolder "dist/SystemMonitor(macOS).app" -ov -format UDZO SystemMonitor.dmg
 
-      #######################
       # 6. Windows build (.exe + .zip)
-      #######################
       - name: Build on Windows
         if: runner.os == 'Windows'
         run: |
@@ -73,9 +60,7 @@ jobs:
           powershell Compress-Archive -Path dist/* -DestinationPath SystemMonitor.zip
         shell: pwsh
 
-      #######################
       # 7. Upload build artifacts
-      #######################
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
