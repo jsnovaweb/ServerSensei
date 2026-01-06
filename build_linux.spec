@@ -8,7 +8,7 @@ a = Analysis(
     pathex=['.'],
     binaries=[],
     datas=[
-        ('icon/Monitor.png', '.'),
+        ('icon/Monitor.png', '.'),  # Include app icon
     ],
     hiddenimports=[
         'psutil',
@@ -35,7 +35,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SystemMonitor(Linux)',
+    name='SystemMonitor(Linux)',   # Keep display name
     debug=False,
     strip=True,
     upx=False,
