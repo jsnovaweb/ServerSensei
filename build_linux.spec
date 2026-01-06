@@ -1,4 +1,4 @@
-# PyInstaller spec file for Linux executable
+# PyInstaller spec file for Linux single executable
 # Usage: pyinstaller build_linux.spec
 
 block_cipher = None
@@ -8,7 +8,7 @@ a = Analysis(
     pathex=['.'],
     binaries=[],
     datas=[
-        ('icon/Monitor.png', '.'),  # Include app icon
+        ('icon/Monitor.png', '.'),  # Include icon
     ],
     hiddenimports=[
         'psutil',
@@ -35,7 +35,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SystemMonitor(Linux)',   # Keep display name
+    name='SystemMonitor(Linux)',
     debug=False,
     strip=True,
     upx=False,
@@ -45,4 +45,5 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='icon/Monitor.png',
+    onefile=True
 )
