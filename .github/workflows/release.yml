@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       #######################
@@ -34,26 +34,22 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pyinstaller pillow psutil matplotlib numpy paramiko gputil fpdf2
-
       #######################
-      # 4. Linux build (onefile .deb)
+      # 4. Linux build (single-file .deb)
       #######################
       - name: Build on Linux
         if: runner.os == 'Linux'
         run: |
-          # Build onefile Linux executable
+          # Build single-file Linux executable
           pyinstaller build_linux.spec
-
           # Install FPM for .deb creation
           sudo apt-get update
           sudo apt-get install -y ruby ruby-dev build-essential
           sudo gem install --no-document fpm
-
           # Package single executable into .deb
-          fpm -s file -t deb -n systemmonitor -v 1.0 \
-            dist/SystemMonitorLinux=/opt/systemmonitor \
-            icon/Monitor.png=/usr/share/pixmaps/systemmonitor.png
-
+          fpm -s dir -t deb -n systemmonitor -v 1.0 \
+            "dist/SystemMonitor(Linux)"=/usr/local/bin/systemmonitor \
+            "icon/Monitor.png"=/usr/share/pixmaps/systemmonitor.png
       #######################
       # 5. macOS build (.app + .dmg)
       #######################
@@ -62,7 +58,6 @@ jobs:
         run: |
           pyinstaller build_macos.spec
           hdiutil create -volname SystemMonitor -srcfolder "dist/SystemMonitor(macOS).app" -ov -format UDZO SystemMonitor.dmg
-
       #######################
       # 6. Windows build (.exe + .zip)
       #######################
