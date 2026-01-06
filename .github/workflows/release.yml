@@ -58,5 +58,5 @@ jobs:
           name: build-${{ runner.os }}
           path: |
             ${{ runner.os == 'Linux' && 'systemmonitor_1.0_amd64.deb' || '' }}
-            ${{ runner.os == 'macOS' && 'dist/SystemMonitor(macOS).app' || '' }}
-            ${{ runner.os == 'Windows' && 'dist/SystemMonitor(Windows)/SystemMonitor(Windows).exe' || '' }}
+            ${{ runner.os == 'macOS' && 'dist/SystemMonitormacOS.app' || '' }}
+            ${{ runner.os == 'Windows' && 'dist/SystemMonitorWindows/SystemMonitorWindows.exe' || '' }}
